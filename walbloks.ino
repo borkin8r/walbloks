@@ -10,7 +10,7 @@ Gamebuino gb;
 const int DROPPER_SIZE = 8;
 const int MAX_NUM_BLOCKS = (LCDHEIGHT / DROPPER_SIZE) * (LCDWIDTH / DROPPER_SIZE);
 int dropper_x = LCDWIDTH / 2;
-int dropper_y = LCDHEIGHT - (DROPPER_SIZE * 4);
+int dropper_y = LCDHEIGHT - (DROPPER_SIZE * 2);
 int dropper_vx = 1;
 int drop_vy = 1;
 int dropped_block_count = 0;
@@ -36,7 +36,11 @@ void loop(){
   //returns true when it's time to render a new frame (20 times/second)
   if(gb.update()){
     //prints Hello World! on the screen
-    gb.display.println(F("Score: "));
+    //gb.display.println(F("Score: %d"));
+    gb.display.fontSize = 2;
+    gb.display.cursorX = 15;
+    gb.display.cursorY = 16;
+    gb.display.print(dropped_heighest_point);
     gb.display.fillRect(0, 6, LCDWIDTH, 1);
 
     //////////////////////////////////////////
@@ -56,24 +60,33 @@ void loop(){
         if (dropped_blocks.y[i] >= LCDHEIGHT - DROPPER_SIZE) { //stop from falling through bottom
           dropped_blocks.vy[i] = 0;
           dropped_blocks.y[i] = LCDHEIGHT - DROPPER_SIZE;
+
+          if(dropped_heighest_point > LCDHEIGHT - DROPPER_SIZE) {
+            dropped_heighest_point = LCDHEIGHT - DROPPER_SIZE;
+          }
         }
         else { //check for frozen block collision
           for(int j = 0; j < dropped_block_count; j++) {
             if(i != j && dropped_blocks.vy[j] == 0) { //don't compare to itself and is comparing to a frozen block
               //check horizontal and vertical overlap
-              if(isThereHorizontalOverlap(dropped_blocks.x[i], dropped_blocks.x[j]) &&
-                  isThereVerticalOverlap(dropped_blocks.y[i], dropped_blocks.y[j])) {
-                  dropped_blocks.vy[i] = 0;
-                  int adjusted_frozen_height = dropped_blocks.y[i] - (dropped_blocks.y[i] % 4); //what if completely overlapped
-                  if(dropped_heighest_point > adjusted_frozen_height) {
-                    dropped_heighest_point = adjusted_frozen_height;
-                  }
-                  dropped_blocks.y[i] = adjusted_frozen_height;
+              if(gb.collideRectRect(dropped_blocks.x[i], dropped_blocks.y[i], DROPPER_SIZE, DROPPER_SIZE,
+                                    dropped_blocks.x[j], dropped_blocks.y[j], DROPPER_SIZE, DROPPER_SIZE)) {
+                dropped_blocks.vy[i] = 0;
+                int adjusted_frozen_height = dropped_blocks.y[i] - (dropped_blocks.y[i] % 4); //what if completely overlapped
+                if(dropped_heighest_point > adjusted_frozen_height) {
+                  dropped_heighest_point = adjusted_frozen_height;
+                }
+                dropped_blocks.y[i] = adjusted_frozen_height;
               }
             }
           }
         }
       }
+    }
+    
+    //move dropper up if there is no space between heighest point and dropper
+    if(dropper_y + DROPPER_SIZE >= dropped_heighest_point) {
+        dropper_y -= DROPPER_SIZE;
     }
 
     ////////////////////////////////////
@@ -82,9 +95,6 @@ void loop(){
       dropped_blocks.x[dropped_block_count] = dropper_x;
       dropped_blocks.y[dropped_block_count] = dropper_y + DROPPER_SIZE;
       dropped_blocks.vy[dropped_block_count] = 1;
-      if(dropper_y >= dropped_heighest_point) {
-        dropper_y -= DROPPER_SIZE;
-      }
       dropped_block_count++;
       gb.sound.playTick();
     }
