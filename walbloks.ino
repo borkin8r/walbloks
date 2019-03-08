@@ -37,10 +37,10 @@ void loop(){
   if(gb.update()){
     //prints Hello World! on the screen
     //gb.display.println(F("Score: %d"));
-    gb.display.fontSize = 2;
-    gb.display.cursorX = 15;
-    gb.display.cursorY = 16;
-    gb.display.print(dropped_heighest_point);
+    gb.display.fontSize = 1;
+    gb.display.cursorX = 0;
+    gb.display.cursorY = 0;
+    gb.display.print(dropped_block_count);
     gb.display.fillRect(0, 6, LCDWIDTH, 1);
 
     //////////////////////////////////////////
@@ -91,7 +91,7 @@ void loop(){
 
     ////////////////////////////////////
     //handle input
-    if(gb.buttons.pressed(BTN_A) || gb.buttons.pressed(BTN_B)) {
+    if((gb.buttons.pressed(BTN_A) || gb.buttons.pressed(BTN_B)) && canDrop()) {
       dropped_blocks.x[dropped_block_count] = dropper_x;
       dropped_blocks.y[dropped_block_count] = dropper_y + DROPPER_SIZE;
       dropped_blocks.vy[dropped_block_count] = 1;
@@ -108,26 +108,18 @@ void loop(){
     for(int i=0; i < dropped_block_count; i++) {
       gb.display.fillRect(dropped_blocks.x[i], dropped_blocks.y[i], DROPPER_SIZE, DROPPER_SIZE);
     }
-
   }
 }
 
-  bool isThereHorizontalOverlap(int x1, int x2) {
-    int x1_end = x1 + DROPPER_SIZE;
-    int x2_end = x2 + DROPPER_SIZE;
-    if((x2 < x1_end && x2 > x1) || (x1 < x2_end && x1 > x2)) {
-      return true;
+  bool canDrop() {
+    for(int i=0; i < dropped_block_count; i++) {
+      if(dropped_blocks.vy[i] != 0) {
+        return false;
+      }
     }
-    return false;
+    return true;
   }
 
-  bool isThereVerticalOverlap(int y1, int y2) {
-    int y1_end = y1 + DROPPER_SIZE;
-    if(y2 < y1_end && y2 > y1) {
-      return true;
-    }
-    return false;
-  }
 
   void resetDroppedBlocks() {
     for(int i=0; i < MAX_NUM_BLOCKS; i++) {
