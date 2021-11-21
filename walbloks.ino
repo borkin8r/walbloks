@@ -39,6 +39,10 @@ void loop(){
   //returns true when it's time to render a new frame (20 times/second)
   if(gb.update()){
 
+    if(gb.buttons.pressed(BTN_C)) {
+      gb.titleScreen(F("Walbloks"));
+    }
+
     //check for gameover
     if(dropper_y > DROPPER_SIZE / 2) {
       count++;
@@ -103,7 +107,12 @@ void loop(){
     else {
       dropper_y = -DROPPER_SIZE;
 
-      if(gb.buttons.pressed(BTN_C)) {
+      gb.display.fontSize = 1;
+      gb.display.cursorX = 44;
+      gb.display.cursorY = 0;
+      gb.display.print("Game Over");
+
+      if(gb.buttons.pressed(BTN_A) || gb.buttons.pressed(BTN_B)) {
         resetGame();
       }
     }
@@ -114,8 +123,9 @@ void loop(){
     gb.display.fontSize = 1;
     gb.display.cursorX = 0;
     gb.display.cursorY = 0;
-    gb.display.print(dropped_block_count + (score - (count / FPS)));
-    gb.display.fillRect(0, 6, LCDWIDTH, 1);
+    gb.display.print("Score: ");
+    gb.display.print(dropped_block_count);
+    //gb.display.fillRect(0, 6, LCDWIDTH, 1);
 
     //////////////////////////////////////
     //draw dropper
